@@ -86,11 +86,13 @@
               <h2 class="text-6xl font-light text-slate-800">
                 <%= temperatura %>°C
               </h2>
-              <span class="text-5xl"
-                ><img
+              <span class="text-5xl flex items-center justify-center">
+                <img
                   src="https://assets.hgbrasil.com/weather/icons/conditions/<%= slogan %>.svg"
                   alt="<%= clima %>"
-              /></span>
+                  class="w-24 h-24 object-contain block"
+                />
+              </span>
             </div>
             <p
               class="text-emerald-600 font-bold mt-1 uppercase text-xs tracking-wider"
