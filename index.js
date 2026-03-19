@@ -13,8 +13,10 @@ app.set("view engine", "html");
 app.set("views", __dirname + "/src/views");
 
 app.get("/", async (req, res) => {
-  const { temperatura, clima, cidade, slogan } = await coletarClima();
-  res.render("index", { temperatura, clima, cidade, slogan });
+  const ipUser = "179.43.38.5";
+  console.log(ipUser);
+  const { temperatura, clima, cidade, linkClima } = await coletarClima(ipUser);
+  res.render("index", { temperatura, clima, cidade, linkClima });
 });
 
 app.listen(port, () => {
