@@ -149,11 +149,18 @@ async function coletarClima(ipUser) {
       temperatura: previsaoDia[0].temperatura,
       clima: previsaoDia[0].clima,
       linkClima: previsaoDia[0].linkClima,
+      umidade: infoDia[1].valor,
       cidade: cidade + "-" + estadoSigla,
     };
   } catch (error) {
     console.error("Erro ao coletar dados do clima:", error.message);
-    return { temperatura: null, clima: null, cidade: null, slogan: null };
+    return {
+      temperatura: null,
+      clima: null,
+      cidade: null,
+      linkClima: null,
+      umidade: null,
+    };
   }
 }
 

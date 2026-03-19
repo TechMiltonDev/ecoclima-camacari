@@ -22,8 +22,9 @@ app.get("/", async (req, res) => {
     req.socket.remoteAddress ||
     req.ip;
   console.log(ipUser);
-  const { temperatura, clima, cidade, linkClima } = await coletarClima(ipUser);
-  res.render("index", { temperatura, clima, cidade, linkClima });
+  const { temperatura, clima, cidade, linkClima, umidade } =
+    await coletarClima(ipUser);
+  res.render("index", { temperatura, clima, cidade, linkClima, umidade });
 });
 
 app.listen(port, () => {
