@@ -35,6 +35,7 @@ async function coletarClima(ipUser) {
             .replace(/\s+/g, ""),
           clima: $(el)
             .find("span.weather-card__current-weather__condition-name")
+            .text()
             .trim(),
           linkClima: $(el).find("img").attr("src").replace(/\s+/g, ""),
         };
