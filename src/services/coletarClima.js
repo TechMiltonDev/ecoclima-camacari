@@ -6,17 +6,11 @@ async function coletarClima(ipUser) {
     const MONGODB_URL = process.env.MONGODB_URL;
     const cidade = "Camaçari - BA";
     const cidadeFormatada = cidade
-      // Normaliza para decompor acentos (ex: "é" vira "e + ´")
       .normalize("NFD")
-      // Substitui ç por c
       .replace(/[Çç]/g, "c")
-      // Remove os diacríticos (acentos)
       .replace(/[\u0300-\u036f]/g, "")
-      // Remove caracteres especiais, mantendo letras, números e espaços
-      .replace(/[^a-zA-Z0-9 ]/g, "")
-      // Remove espaços
+      .replace(/[^a-zA-Z0-9-]/g, "") // ← Adicionado o hífen aqui
       .replace(/\s+/g, "")
-      // Substitui espaços por barras
       .toLowerCase();
 
     const response = await axios.get(
