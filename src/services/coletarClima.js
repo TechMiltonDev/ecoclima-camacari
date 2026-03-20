@@ -1,5 +1,18 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
+const fs = require("fs")
+
+let getAttrSafe = ($element, attr) => {
+      if (!$element || $element.length === 0) return "";
+      const val = $element.attr(attr);
+      return val ? val.trim() : "";
+    };
+    
+let getTextSafe = ($element) => {
+      if (!$element || $element.length === 0) return "";
+      const val = $element.text();
+      return val ? val.trim() : "";
+    };
 
 async function coletarClima(ipUser) {
   try {
@@ -17,33 +30,45 @@ async function coletarClima(ipUser) {
       `https://www.otempo.com.br/tempo/${cidadeFormatada}`,
     );
     const html = response.data;
+    fs.writeFile('pagina.html', html, (err) => {
+      if (err) throw err;
+      console.log('Arquivo HTML salvo com sucesso!');
+    });
     const $ = cheerio.load(html);
 
     const climaAtual = $(
-      "div.weather-card.mb-5.weather-card--group-2.data-city-id= div.weather-card__middle div.weather-card__current-weather",
+      "div.weather-card__middle div.weather-card__current-weather",
     )
       .map((i, el) => {
+        const $el = $(el);
+
+        // Agora use $el.find em vez de el.find
+        let $imgClima = $el.find(
+          "div img.weather-card__current-weather__icon",
+        );
+        
+        let $elDiv = $el.find(
+          "div.d-flex.flex-column",
+        );
+        
+        let $elTemp = $elDiv.find(
+          "span.weather-card__current-weather__temperature",
+        );
+        
+        let $elClima = $elDiv.find(
+          "span.weather-card__current-weather__condition-name",
+        );
+        
         return {
           horario: new Date().toLocaleString("pt-BR", {
             hour: "2-digit",
             minute: "2-digit",
             second: "2-digit",
           }),
-          temperatura: $(el)
-            .find(
-              "div.d-flex.flex-column span.weather-card__current-weather__temperature",
-            )
-            .text()
+          temperatura: getTextSafe($elTemp)
             .replace(/\s+/g, ""),
-          clima: $(el)
-            .find(
-              "div.d-flex.flex-column span.weather-card__current-weather__condition-name",
-            )
-            .text()
-            .trim(),
-          linkClima: $(el)
-            .find("div img.weather-card__current-weather__icon")
-            .attr("src")
+          clima: getTextSafe($elClima),
+          linkClima: getAttrSafe($imgClima, "src")
             .replace(/\s+/g, ""),
         };
       })
@@ -100,12 +125,6 @@ async function coletarClima(ipUser) {
       })
       .get();
 
-    const getAttrSafe = ($element, attr) => {
-      if (!$element || $element.length === 0) return "";
-      const val = $element.attr(attr);
-      return val ? val.trim() : "";
-    };
-
     const previsoesDias = $(
       "div ul.weather-list-forecast li.weather-list-forecast__item",
     )
@@ -145,9 +164,9 @@ async function coletarClima(ipUser) {
       .get();
 
     return {
-      temperatura: climaAtual.temperatura,
-      clima: climaAtual.clima,
-      linkClima: climaAtual.linkClima,
+      temperatura: climaAtual[0].temperatura,
+      clima: climaAtual[0].clima,
+      linkClima: climaAtual[0].linkClima,
       umidade: infoDia[1].valor,
       cidade: cidade,
     };

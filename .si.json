@@ -1,6 +1,6 @@
 {
   "plugin": "org.smartide.plugin.javascript",
-  "run": "echo 'change command from .si.json file'",
+  "run": "npm run start:dev",
   "intelligence": {
     ".html": {
       "enabled": true,
