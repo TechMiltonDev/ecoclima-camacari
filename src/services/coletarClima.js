@@ -30,10 +30,12 @@ async function coletarClima(ipUser) {
             second: "2-digit",
           }),
           temperatura: $(el)
-            .find("div.weather-card__current-eather__temperature")
+            .find("span.weather-card__current-eather__temperature")
             .text()
             .replace(/\s+/g, ""),
-          clima: $(el).find("img").attr("alt").trim(),
+          clima: $(el)
+            .find("span.weather-card__current-weather__condition-name")
+            .trim(),
           linkClima: $(el).find("img").attr("src").replace(/\s+/g, ""),
         };
       })
