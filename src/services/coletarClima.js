@@ -20,7 +20,7 @@ async function coletarClima(ipUser) {
     const $ = cheerio.load(html);
 
     const climaAtual = $(
-      "div.weather-card__middle div.weather-card__current-weather",
+      "div.weather-card.mb-5.weather-card--group-2.data-city-id= div.weather-card__middle div.weather-card__current-weather",
     )
       .map((i, el) => {
         return {
