@@ -71,7 +71,7 @@ async function coletarClima(ipUser) {
       .get();
 
     const horarioAtual = new Date().getHours();
-    if (horarioAtual <= previsaoDia[0].horario) {
+    if (horarioAtual <= parseInt(previsaoDia[0].horario)) {
       previsaoDia.shift();
     }
 
