@@ -14,7 +14,7 @@ let getTextSafe = ($element) => {
       return val ? val.trim() : "";
     };
 
-async function coletarClima(ipUser) {
+async function coletarClima(salvarDados=false) {
   try {
     const MONGODB_URL = process.env.MONGODB_URL;
     const cidade = "Camaçari - BA";
@@ -30,10 +30,6 @@ async function coletarClima(ipUser) {
       `https://www.otempo.com.br/tempo/${cidadeFormatada}`,
     );
     const html = response.data;
-    fs.writeFile('pagina.html', html, (err) => {
-      if (err) throw err;
-      console.log('Arquivo HTML salvo com sucesso!');
-    });
     const $ = cheerio.load(html);
 
     const climaAtual = $(
