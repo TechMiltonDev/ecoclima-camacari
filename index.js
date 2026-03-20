@@ -24,7 +24,14 @@ app.get("/", async (req, res) => {
   console.log(ipUser);
   const { temperatura, clima, cidade, linkClima, umidade } =
     await coletarClima(ipUser);
-  res.render("index", { temperatura, clima, cidade, linkClima, umidade });
+  res.render("index", {
+    temperatura,
+    clima,
+    cidade,
+    linkClima,
+    umidade,
+    dadosSemanais: [0, 0, 0, 0, 0, 0, 0],
+  });
 });
 
 app.listen(port, () => {
