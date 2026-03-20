@@ -4,39 +4,8 @@ const cheerio = require("cheerio");
 async function coletarClima(ipUser) {
   try {
     const MONGODB_URL = process.env.MONGODB_URL;
-    const { data } = await axios.get(`https://ipinfo.io/${ipUser}/json`);
-    estados = {
-      Acre: "AC",
-      Alagoas: "AL",
-      Amapá: "AP",
-      Amazonas: "AM",
-      Bahia: "BA",
-      Ceará: "CE",
-      "Distrito Federal": "DF",
-      "Espírito Santo": "ES",
-      Goiás: "GO",
-      Maranhão: "MA",
-      "Mato Grosso": "MT",
-      "Mato Grosso do Sul": "MS",
-      "Minas Gerais": "MG",
-      Pará: "PA",
-      Paraíba: "PB",
-      Paraná: "PR",
-      Pernambuco: "PE",
-      Piauí: "PI",
-      "Rio de Janeiro": "RJ",
-      "Rio Grande do Norte": "RN",
-      "Rio Grande do Sul": "RS",
-      Rondônia: "RO",
-      Roraima: "RR",
-      "Santa Catarina": "SC",
-      "São Paulo": "SP",
-      Sergipe: "SE",
-      Tocantins: "TO",
-    };
-    const estado = data?.region;
-    const estadoSigla = estados?.[estado].toLowerCase();
-    const cidade = data?.city
+    const cidade = "Camaçari - BA";
+    const cidadeFormatada = cidade
       // Normaliza para decompor acentos (ex: "é" vira "e + ´")
       .normalize("NFD")
       // Substitui ç por c
@@ -45,15 +14,36 @@ async function coletarClima(ipUser) {
       .replace(/[\u0300-\u036f]/g, "")
       // Remove caracteres especiais, mantendo letras, números e espaços
       .replace(/[^a-zA-Z0-9 ]/g, "")
+      // Remove espaços
+      .replace(/\s+/g, "")
       // Substitui espaços por barras
-      .replace(/\s+/g, "/")
       .toLowerCase();
 
     const response = await axios.get(
-      `https://www.otempo.com.br/tempo/${cidade}-${estadoSigla}`,
+      `https://www.otempo.com.br/tempo/${cidadeFormatada}`,
     );
     const html = response.data;
     const $ = cheerio.load(html);
+
+    const climaAtual = $(
+      "div.weather-card__middle div.weather-card__current-weather",
+    )
+      .map((i, el) => {
+        return {
+          horario: new Date().toLocaleString("pt-BR", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          }),
+          temperatura: $(el)
+            .find("div.weather-card__current-eather__temperature")
+            .text()
+            .replace(/\s+/g, ""),
+          clima: $(el).find("img").attr("alt").trim(),
+          linkClima: $(el).find("img").attr("src").replace(/\s+/g, ""),
+        };
+      })
+      .get();
 
     const previsaoDia = $(
       "div.weather-card__forecast div.weather-card__forecast__box",
@@ -71,7 +61,7 @@ async function coletarClima(ipUser) {
           clima: $(el)
             .find("div.weather-card__forecast__box__icon img")
             .attr("alt")
-            .replace(/\s+/g, ""),
+            .trim(),
           linkClima: $(el)
             .find("div.weather-card__forecast__box__icon img")
             .attr("src")
@@ -79,6 +69,11 @@ async function coletarClima(ipUser) {
         };
       })
       .get();
+
+    const horarioAtual = new Date().getHours();
+    if (horarioAtual <= previsaoDia[0].horario) {
+      previsaoDia.shift();
+    }
 
     const infoDia = $(
       "div.weather-card__info-panel div.weather-card__info-panel__box",
@@ -146,11 +141,11 @@ async function coletarClima(ipUser) {
       .get();
 
     return {
-      temperatura: previsaoDia[0].temperatura,
-      clima: previsaoDia[0].clima,
-      linkClima: previsaoDia[0].linkClima,
+      temperatura: climaAtual.temperatura,
+      clima: climaAtual.clima,
+      linkClima: climaAtual.linkClima,
       umidade: infoDia[1].valor,
-      cidade: cidade + "-" + estadoSigla,
+      cidade: cidade,
     };
   } catch (error) {
     console.error("Erro ao coletar dados do clima:", error.message);
