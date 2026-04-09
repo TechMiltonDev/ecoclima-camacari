@@ -1,0 +1,15 @@
+{
+  "env": {
+    "TZ": "America/Sao_Paulo"
+  },
+  "crons": [
+    {
+      "path": "/api/coleta-cron",
+      "schedule": "0 4-26 * * *"
+    },
+    {
+      "path": "/api/coleta-cron",
+      "schedule": "15 3 * * *"
+    }
+  ]
+}
