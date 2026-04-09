@@ -1,17 +1,17 @@
-const axios = require("axios");
-const cheerio = require("cheerio");
-const { getAttrSafe, getTextSafe } = require("../utils/helpers");
-const { PrevisaoSemanal, PrevisaoHistorica } = require("../models");
+const axios = require('axios');
+const cheerio = require('cheerio');
+const { getAttrSafe, getTextSafe, getDateBr } = require('../utils/helpers');
+const { PrevisaoSemanal, PrevisaoHistorica } = require('../models');
 
-async function coletarClima(salvarDados = false, cidade = "Camaçari-BA") {
+async function coletarClima(salvarDados = false, cidade = 'Camaçari-BA') {
   try {
     const cidadeFormatada = cidade
-      .normalize("NFD")
-      .replaceAll(" ", "-")
-      .replace(/[Çç]/g, "c")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-zA-Z0-9-]/g, "") // ← Adicionado o hífen aqui
-      .replace(/\s+/g, "")
+      .normalize('NFD')
+      .replaceAll(' ', '-')
+      .replace(/[Çç]/g, 'c')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9-]/g, '') // ← Adicionado o hífen aqui
+      .replace(/\s+/g, '')
       .toLowerCase();
 
     const response = await axios.get(
@@ -21,90 +21,94 @@ async function coletarClima(salvarDados = false, cidade = "Camaçari-BA") {
     const $ = cheerio.load(html);
 
     const climaAtual = $(
-      "div.weather-card__middle div.weather-card__current-weather",
+      'div.weather-card__middle div.weather-card__current-weather',
     )
       .map((i, el) => {
         const $el = $(el);
 
         // Agora use $el.find em vez de el.find
-        let $imgClima = $el.find("div img.weather-card__current-weather__icon");
+        let $imgClima = $el.find('div img.weather-card__current-weather__icon');
 
-        let $elDiv = $el.find("div.d-flex.flex-column");
+        let $elDiv = $el.find('div.d-flex.flex-column');
 
         let $elTemp = $elDiv.find(
-          "span.weather-card__current-weather__temperature",
+          'span.weather-card__current-weather__temperature',
         );
 
         let $elClima = $elDiv.find(
-          "span.weather-card__current-weather__condition-name",
+          'span.weather-card__current-weather__condition-name',
         );
 
         return {
-          horario: new Date().toLocaleString("pt-BR", {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-          }),
-          temperatura: getTextSafe($elTemp).replace(/\s+/g, "").replaceAll("°", ""),
+          horario: getDateBr().toLocaleTimeString('en-US', {
+    		hour: '2-digit',
+    		minute: '2-digit',
+   		 second: '2-digit',
+ 		   hour12: false // Garante formato 24h (ex: 21:00 em vez de 09:00 PM)
+ 		 }),
+          temperatura: getTextSafe($elTemp)
+            .replace(/\s+/g, '')
+            .replaceAll('°', ''),
           clima: getTextSafe($elClima),
-          linkClima: getAttrSafe($imgClima, "src").replace(/\s+/g, ""),
+          linkClima: getAttrSafe($imgClima, 'src').replace(/\s+/g, ''),
         };
       })
       .get();
 
     const previsaoDia = $(
-      "div.weather-card__forecast div.weather-card__forecast__box",
+      'div.weather-card__forecast div.weather-card__forecast__box',
     )
       .map((i, el) => {
         return {
           horario: $(el)
-            .find("div.weather-card__forecast__box__number")
+            .find('div.weather-card__forecast__box__number')
             .text()
-            .replace(/\s+/g, ""),
+            .replace(/\s+/g, ''),
           temperatura: $(el)
-            .find("div.weather-card__forecast__box__temperature")
+            .find('div.weather-card__forecast__box__temperature')
             .text()
-            .replace(/\s+/g, "").replaceAll("°", ""),
+            .replace(/\s+/g, '')
+            .replaceAll('°', ''),
           clima: $(el)
-            .find("div.weather-card__forecast__box__icon img")
-            .attr("alt")
+            .find('div.weather-card__forecast__box__icon img')
+            .attr('alt')
             .trim(),
           linkClima: $(el)
-            .find("div.weather-card__forecast__box__icon img")
-            .attr("src")
-            .replace(/\s+/g, ""),
+            .find('div.weather-card__forecast__box__icon img')
+            .attr('src')
+            .replace(/\s+/g, ''),
         };
       })
       .get();
 
-    const horarioAtual = new Date().getHours();
+    const horarioAtual = getDateBr().getHours();
     if (horarioAtual <= parseInt(previsaoDia[0].horario)) {
       previsaoDia.shift();
     }
 
     const infoDia = $(
-      "div.weather-card__info-panel div.weather-card__info-panel__box",
+      'div.weather-card__info-panel div.weather-card__info-panel__box',
     )
       .map((i, el) => {
         return {
           nome: $(el)
-            .find("div.weather-card__info-panel__box__name")
+            .find('div.weather-card__info-panel__box__name')
             .text()
-            .replace(/\s+/g, ""),
+            .replace(/\s+/g, ''),
           valor: $(el)
-            .find("div.weather-card__info-panel__box__description")
+            .find('div.weather-card__info-panel__box__description')
             .text()
-            .replace(/\s+/g, ""),
+            .replace(/\s+/g, ''),
           linkIcon: $(el)
-            .find("div.weather-card__info-panel__box__icon img")
-            .attr("src")
-            .replace(/\s+/g, ""),
+            .find('div.weather-card__info-panel__box__icon img')
+            .attr('src')
+            .replace(/\s+/g, ''),
         };
       })
       .get();
 
     const previsoesDias = $(
-      "div.aem-GridColumn.aem-GridColumn--default--4.aem-GridColumn--phone--12.mt-4.mt-md-0 ul.weather-list-forecast li.weather-list-forecast__item div.weather-list-forecast__item__box-min",
+      'div.aem-GridColumn.aem-GridColumn--default--4.aem-GridColumn--phone--12.mt-4.mt-md-0 ul.weather-list-forecast li.weather-list-forecast__item div.weather-list-forecast__item__box-min',
     )
       .map((i, el) => {
         const $el = $(el);
@@ -113,36 +117,38 @@ async function coletarClima(salvarDados = false, cidade = "Camaçari-BA") {
 
         // Agora use $el.find em vez de el.find
         let $imgClima = $item.find(
-          "div.weather-list-forecast__item__right img.weather-list-forecast__item__icon",
+          'div.weather-list-forecast__item__right img.weather-list-forecast__item__icon',
         );
 
         if ($imgClima.length === 0) {
-          $imgClima = $item.find("div.weather-list-forecast__item__right img");
+          $imgClima = $item.find('div.weather-list-forecast__item__right img');
         }
         return {
-            nomeDia: $item
-            .find("h3.weather-list-forecast__item__title")
+          nomeDia: $item
+            .find('h3.weather-list-forecast__item__title')
             .text()
             .trim(),
           dia: $item
-            .find("p.weather-list-forecast__item__description")
+            .find('p.weather-list-forecast__item__description')
             .text()
             .trim(),
           tempMin: $item
             .find(
-              "div.weather-list-forecast__item__middle span.weather-list-forecast__item__box-min__description",
+              'div.weather-list-forecast__item__middle span.weather-list-forecast__item__box-min__description',
             )
             .text()
-            .replace(/\s+/g, "").replaceAll("°", ""),
+            .replace(/\s+/g, '')
+            .replaceAll('°', ''),
           tempMax: $item
             .find(
-              "div.weather-list-forecast__item__middle span.weather-list-forecast__item__box-max__description",
+              'div.weather-list-forecast__item__middle span.weather-list-forecast__item__box-max__description',
             )
             .text()
-            .replace(/\s+/g, "").replaceAll("°", ""),
+            .replace(/\s+/g, '')
+            .replaceAll('°', ''),
           // Usa a função segura: se não tiver imagem, retorna string vazia em vez de crashar
-          clima: getAttrSafe($imgClima, "alt"),
-          linkClima: getAttrSafe($imgClima, "src").replace(/\s+/g, ""),
+          clima: getAttrSafe($imgClima, 'alt'),
+          linkClima: getAttrSafe($imgClima, 'src').replace(/\s+/g, ''),
         };
       })
       .get();
@@ -162,30 +168,23 @@ async function coletarClima(salvarDados = false, cidade = "Camaçari-BA") {
         // Adicionar registro à Tabela 3 (Histórico) - COPIA os dados da Tabela 1, incluindo infoDia
         await PrevisaoHistorica.registrar(cidade, dadosDiaria);
       }
-
-      if (previsoesDias.length > 0) {
-        // Atualizar Tabela 2
-        await PrevisaoSemanal.atualizar(cidade, previsoesDias);
-      }
     }
 
     console.log(`Dados dos climas de ${cidade}.`);
 
     return {
-      temperatura: climaAtual[0]?.temperatura ?? null,
-      clima: climaAtual[0]?.clima ?? null,
-      linkClima: climaAtual[0]?.linkClima ?? null,
-      umidade: infoDia.find((i) => i.nome?.includes("Umidade"))?.valor ?? null,
-      cidade: cidade,
+      dadosAtual: climaAtual[0],
+      infoDia,
+      cidade,
+      dadosSemanais: previsoesDias,
     };
   } catch (error) {
-    console.error("Erro ao coletar dados do clima:", error.message);
+    console.error('Erro ao coletar dados do clima:', error.message);
     return {
-      temperatura: null,
-      clima: null,
+      dadosAtual: null,
+      infoDia: null,
       cidade: null,
-      linkClima: null,
-      umidade: null,
+      dadosSemanais: null,
     };
   }
 }

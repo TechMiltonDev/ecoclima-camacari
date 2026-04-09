@@ -1,12 +1,10 @@
 // services/scheduler.js
-const CIDADES = ["Camacari-BA", "Vitoria Da Conquista-BA"];
-const coletarClima = require("./coletarClima");
+const CIDADES = ['Camacari-BA', 'Vitoria Da Conquista-BA'];
+const coletarClima = require('./coletarClima');
+const getDateBr = require('../utils/helpers')
 
 function deveExecutarAgora() {
-  const agoraBR = new Date().toLocaleString("en-US", {
-    timeZone: "America/Sao_Paulo",
-  });
-  const data = new Date(agoraBR);
+  const data = getDateBr();
   const hora = data.getHours();
   const minuto = data.getMinutes();
 

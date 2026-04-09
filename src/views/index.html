@@ -12,7 +12,7 @@
     />
     <style>
       body {
-        font-family: "Inter", sans-serif;
+        font-family: 'Inter', sans-serif;
         background: #f8fafc;
         color: #1e293b;
       }
@@ -84,12 +84,12 @@
             </p>
             <div class="flex justify-between items-center mt-2">
               <h2 class="text-6xl font-light text-slate-800">
-                <%= temperatura %>°C
+                <%= dadosAtual.temperatura %>°C
               </h2>
               <span class="text-5xl flex items-center justify-center">
                 <img
-                  src="<%= linkClima %>"
-                  alt="<%= clima %>"
+                  src="<%= dadosAtual.linkClima %>"
+                  alt="<%= dadosAtual.clima %>"
                   class="w-24 h-24 object-contain block"
                 />
               </span>
@@ -111,7 +111,11 @@
               >
                 Ar Puro
               </div>
-              <span class="text-slate-400 text-xs">💧 <%= umidade %></span>
+              <span class="text-slate-400 text-xs"
+                >💧 <%= infoDia.find((i) =>
+                i.nome?.toLowerCase().includes("umidade"))?.valor ?? null
+                %></span
+              >
             </div>
             <p class="text-[11px] text-gray-500 leading-relaxed italic">
               "A qualidade do ar em Camaçari hoje é excelente para idosos e
@@ -302,61 +306,61 @@
 
     <script>
       // Data
-      document.getElementById("date-now").innerText =
-        new Date().toLocaleDateString("pt-BR", {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-          year: "numeric",
+      document.getElementById('date-now').innerText =
+        new Date().toLocaleDateString('pt-BR', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
         });
 
       // Dicas Aleatórias
       const tips = [
-        "Desligar aparelhos em standby reduz até 12% da conta de energia.",
-        "Utilize lâmpadas LED; elas duram 25x mais que as incandescentes.",
-        "Recicle seu lixo eletrônico em postos autorizados de Camaçari.",
-        "Uma única pilha descartada incorretamente polui o solo por décadas.",
-        "Colete água da chuva para regar suas plantas no final da tarde.",
+        'Desligar aparelhos em standby reduz até 12% da conta de energia.',
+        'Utilize lâmpadas LED; elas duram 25x mais que as incandescentes.',
+        'Recicle seu lixo eletrônico em postos autorizados de Camaçari.',
+        'Uma única pilha descartada incorretamente polui o solo por décadas.',
+        'Colete água da chuva para regar suas plantas no final da tarde.',
       ];
-      document.getElementById("random-tip").innerText =
+      document.getElementById('random-tip').innerText =
         tips[Math.floor(Math.random() * tips.length)];
 
       // Calculadora
       function calcEnergy() {
-        const w = document.getElementById("watts").value;
-        const h = document.getElementById("hours").value;
+        const w = document.getElementById('watts').value;
+        const h = document.getElementById('hours').value;
         if (w > 0 && h > 0) {
           const kwh = (w * h * 30) / 1000;
-          document.getElementById("kwh-val").innerText =
-            kwh.toFixed(2) + " kWh / Mês";
-          document.getElementById("calc-result").classList.remove("hidden");
+          document.getElementById('kwh-val').innerText =
+            kwh.toFixed(2) + ' kWh / Mês';
+          document.getElementById('calc-result').classList.remove('hidden');
         }
       }
 
       // Lê e parseia os dados injetados via EJS
       const dadosSemanais = JSON.parse(
-        document.getElementById("dados-clima").textContent,
+        document.getElementById('dados-clima').textContent,
       );
 
       // Extrai os arrays para o gráfico
-      var dadosDias = dadosSemanais.map((d) => d.nome_dia);
-      var dadosTempMin = dadosSemanais.map((d) => parseInt(d.temp_min));
-      var dadosTempMax = dadosSemanais.map((d) => parseInt(d.temp_max));
+      var dadosDias = dadosSemanais.map((d) => d.nomeDia);
+      var dadosTempMin = dadosSemanais.map((d) => parseInt(d.tempMin));
+      var dadosTempMax = dadosSemanais.map((d) => parseInt(d.tempMax));
       var mediaTemps = dadosSemanais.map(
-        (d) => (parseInt(d.temp_min) + parseInt(d.temp_max)) / 2,
+        (d) => (parseInt(d.tempMin) + parseInt(d.tempMax)) / 2,
       );
 
-      const ctx = document.getElementById("tempChart").getContext("2d");
+      const ctx = document.getElementById('tempChart').getContext('2d');
       new Chart(ctx, {
-        type: "line",
+        type: 'line',
         data: {
           labels: dadosDias,
           datasets: [
             {
-              label: "Máxima",
+              label: 'Máxima',
               data: mediaTemps,
-              borderColor: "#10b981",
-              backgroundColor: "rgba(16, 185, 129, 0.05)",
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.05)',
               fill: true,
               tension: 0.4,
             },
