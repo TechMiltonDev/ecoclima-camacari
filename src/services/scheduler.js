@@ -1,7 +1,7 @@
 // services/scheduler.js
 const CIDADES = ['Camacari-BA', 'Vitoria Da Conquista-BA'];
 const coletarClima = require('./coletarClima');
-const getDateBr = require('../utils/helpers')
+const {getDateBr} = require('../utils/helpers')
 
 function deveExecutarAgora() {
   const data = getDateBr();
