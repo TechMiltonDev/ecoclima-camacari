@@ -15,7 +15,7 @@ function deveExecutarAgora() {
 
 async function executarColeta() {
   for (const cidade of CIDADES) {
-    await coletarClima(cidade);
+    await coletarClima(true, cidade);
     await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 }

@@ -29,7 +29,7 @@ app.get('/api/coleta-cron', async (req, res) => {
   // 🔹 Verifica se é a hora certa no fuso de Brasília
   const force = req.query.force === 'true';
 
-  if (!force && !deveExecutarAgora() && !process.env.CRON_STATUS === 'true') {
+  if (!force && !deveExecutarAgora() && process.env.CRON_STATUS !== 'true') {
     const agoraBR = new Date().toLocaleString('pt-BR', {
       timeZone: 'America/Sao_Paulo',
     });
