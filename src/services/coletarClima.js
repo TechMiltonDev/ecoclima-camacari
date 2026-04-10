@@ -1,13 +1,13 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
+const { PrevisaoHistorica } = require("../models/index")
 const { getAttrSafe, getTextSafe, getDateBr } = require('../utils/helpers');
-const { PrevisaoSemanal, PrevisaoHistorica } = require('../models');
 
 async function coletarClima(salvarDados = false, cidade = 'Camaçari-BA') {
   try {
     const cidadeFormatada = cidade
+    .replaceAll(' ', '-')
       .normalize('NFD')
-      .replaceAll(' ', '-')
       .replace(/[Çç]/g, 'c')
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-zA-Z0-9-]/g, '') // ← Adicionado o hífen aqui
@@ -38,7 +38,7 @@ async function coletarClima(salvarDados = false, cidade = 'Camaçari-BA') {
         let $elClima = $elDiv.find(
           'span.weather-card__current-weather__condition-name',
         );
-
+            // DEBUG: Verificar se getDateBr ainda é função aqui
         return {
           horario: getDateBr().toLocaleTimeString('en-US', {
     		hour: '2-digit',
@@ -81,7 +81,8 @@ async function coletarClima(salvarDados = false, cidade = 'Camaçari-BA') {
       })
       .get();
 
-    const horarioAtual = getDateBr().getHours();
+    const horarioAtual = new Date(getDateBr()).getHours();
+    console.log(horarioAtual)
     if (horarioAtual <= parseInt(previsaoDia[0].horario)) {
       previsaoDia.shift();
     }

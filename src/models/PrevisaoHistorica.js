@@ -1,6 +1,6 @@
 // models/PrevisaoHistorica.js
 const db = require('../config/database');
-const getDateBr = require('../utils/helpers')
+const {getDateBr} = require('../utils/helpers')
 
 class PrevisaoHistorica {
   static tableName = 'previsoes_historicas';
