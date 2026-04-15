@@ -1,20 +1,22 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
+const ejs = require('ejs');
 
 dotenv.config();
 
 // Importar a função de inicialização dos modelos
-const { initializeModels, PrevisaoSemanal } = require('./src/models'); // Caminho relativo para models/index.js
+const { initializeModels, PrevisaoHistorica } = require('./src/models'); // Caminho relativo para models/index.js
+const loginController = require('./src/controller/login');
+const cadastroController = require('./src/controller/cadastro');
+const verificarSessao = require('./src/middlewares/auth');
 
 const coletarClima = require('./src/services/coletarClima'); // ou o caminho correto para o seu service
-const ejs = require('ejs');
 const app = express();
-const port = 3000;
+const PORT = 3000;
 
-const {
-  deveExecutarAgora,
-  executarColeta,
-} = require('./src/services/scheduler');
+const executarColeta = require('./src/services/scheduler');
 
 // 🔹 Endpoint protegido para o Vercel Cron chamar
 app.get('/api/coleta-cron', async (req, res) => {
@@ -26,16 +28,10 @@ app.get('/api/coleta-cron', async (req, res) => {
     return res.status(401).json({ error: 'Não autorizado' });
   }
 
-  // 🔹 Verifica se é a hora certa no fuso de Brasília
-  const force = req.query.force === 'true';
-
-  if (!force && !deveExecutarAgora() && process.env.CRON_STATUS !== 'true') {
-    const agoraBR = new Date().toLocaleString('pt-BR', {
-      timeZone: 'America/Sao_Paulo',
-    });
+  if (process.env.CRON_STATUS !== 'true') {
     return res.json({
       skipped: true,
-      message: `Ainda não é hora. Horário Brasília: ${agoraBR}`,
+      message: 'cron desligado',
     });
   }
 
@@ -49,37 +45,74 @@ app.get('/api/coleta-cron', async (req, res) => {
   }
 });
 
-// Inicializar os modelos (criar tabelas se não existirem)
+app.use(express.json());
+app.use(cookieParser());
+app.use(express.json());
+app.engine('html', ejs.renderFile);
+app.set('view engine', 'html');
+app.set('views', __dirname + '/src/views');
+
+app.get('/', async (req, res) => {
+  const { dadosAtual, infoDia, cidade, dadosSemanais } = await coletarClima(
+    process.env.DEVELOPMENT === 'true',
+    'Camaçari-BA',
+  );
+
+  res.render('index', {
+    dadosAtual,
+    infoDia,
+    cidade,
+    dadosSemanais, // lista de dicionarios com: tempMax, tempMin, dia, nomeDia. No dia previsto pode ta escrito Amanhã
+  });
+});
+
+app.get('/climas', (req, res) => {
+  res.render('climas');
+});
+
+app.post('/climas', async (req, res) => {
+  const cidade = req.body.cidade || 'Camaçari-BA';
+  const limite = req.body.limite || 100;
+  const dadosCidades = await PrevisaoHistorica.buscarPorCidade(cidade, limite);
+
+  res.json({
+    sucesso: true,
+    dadosCidade, // cidade, horario_registro (não é o horario real, é so a hora), temperatura, clima, link_clima, umidade_valor, raio_uv_valor, ventos_valor, created_at
+  });
+});
+
+app.get('/cadastro', (req, res) => {
+  res.render('cadastro');
+});
+
+app.post('/cadastro', cadastroController);
+
+app.get('/login', (req, res) => {
+  res.render('login');
+});
+
+app.post('/login', loginController);
+
+app.post('/logout', (req, res) => {
+  res.clearCookie('token');
+  res.json({ message: 'Logout realizado!' });
+});
+
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na Porta: ${PORT}`);
+});
+
 async function startServer() {
   try {
-    await initializeModels(); // <- Chama a inicialização aqui
-    console.log('Modelos inicializados com sucesso.');
+    await initializeModels();
+    console.log('✅ Modelos e tabelas verificados.');
 
-    app.use(express.json());
-    app.engine('html', ejs.renderFile);
-    app.set('view engine', 'html');
-    app.set('views', __dirname + '/src/views');
-
-    app.get('/', async (req, res) => {
-      const { dadosAtual, infoDia, cidade, dadosSemanais } = await coletarClima(
-        process.env.DEVELOPMENT === 'true',
-        'Camaçari-BA',
-      );
-
-      res.render('index', {
-        dadosAtual,
-        infoDia,
-        cidade,
-        dadosSemanais, // lista de dicionarios com: tempMax, tempMin, dia, nomeDia. No dia previsto pode ta escrito Amanhã
-      });
-    });
-
-    app.listen(port, () => {
-      console.log(`Servidor rodando na Porta: ${port}`);
+    app.listen(PORT, () => {
+      console.log(`🚀 Servidor rodando na Porta: ${PORT}`);
     });
   } catch (error) {
-    console.error('Erro ao inicializar os modelos:', error);
-    process.exit(1); // Sai do processo se não conseguir inicializar
+    console.error('❌ Erro crítico ao iniciar:', error);
+    process.exit(1);
   }
 }
 
