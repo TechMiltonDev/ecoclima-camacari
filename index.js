@@ -10,7 +10,10 @@ dotenv.config();
 const { initializeModels, PrevisaoHistorica } = require('./src/models'); // Caminho relativo para models/index.js
 const loginController = require('./src/controller/login');
 const cadastroController = require('./src/controller/cadastro');
+const upload = require('./src/config/upload');
+const uploadController = require('./src/controller/uploadController');
 const verificarSessao = require('./src/middlewares/auth');
+const verifyOrigin = require('./src/middlewares/verifyOrigin'); // <--- IMPORTE AQUI
 
 const coletarClima = require('./src/services/coletarClima'); // ou o caminho correto para o seu service
 const app = express();
@@ -51,6 +54,7 @@ app.use(express.json());
 app.engine('html', ejs.renderFile);
 app.set('view engine', 'html');
 app.set('views', __dirname + '/src/views');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/', async (req, res) => {
   const { dadosAtual, infoDia, cidade, dadosSemanais } = await coletarClima(
@@ -85,13 +89,31 @@ app.get('/cadastro', (req, res) => {
   res.render('cadastro');
 });
 
-app.post('/cadastro', cadastroController);
+app.post('/cadastro', verifyOrigin, cadastroController);
 
 app.get('/login', (req, res) => {
   res.render('login');
 });
 
-app.post('/login', loginController);
+app.post('/login', verifyOrigin, loginController);
+
+app.get('/uploads', verificarSessao({ admin: true }), (req, res) => {
+  res.render('uploads');
+});
+
+const uploadFields = upload.fields([
+  { name: 'nomeImagem', maxCount: 1 },
+  { name: 'arquivo', maxCount: 1 },
+]);
+
+// Rota Protegida
+app.post(
+  '/upload',
+  verificarSessao({ admin: true }),
+  verifyOrigin,
+  uploadFields,
+  uploadController,
+);
 
 app.post('/logout', (req, res) => {
   res.clearCookie('token');

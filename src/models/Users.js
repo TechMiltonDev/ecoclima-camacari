@@ -14,6 +14,7 @@ class Users {
     nome VARCHAR(255) NOT NULL,
     email VARCHAR(254) NOT NULL,
     senha VARCHAR(128),
+    admin TINYINT(1) DEFAULT 0,
     assinou TINYINT(1) DEFAULT 0,
     created_at DATETIME NOT NULL,
     INDEX idx_email (email)
@@ -69,6 +70,15 @@ class Users {
       console.error('❌ Erro ao atualizar assinatura:', error.message);
       throw error;
     }
+  }
+
+  static async usuarioAdmin(email) {
+    const sql = `
+      SELECT admin FROM ${this.tableName} 
+      WHERE email = ?
+    `;
+    const [rows] = await db.query(sql, [email]);
+    return rows.length > 0 ? rows[0].admin == 1 : false;
   }
 
   // 🔍 Busca histórico de uma cidade (todos os registros)

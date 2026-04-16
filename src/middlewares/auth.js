@@ -1,26 +1,57 @@
+// src/middlewares/auth.js
 const jwt = require('jsonwebtoken');
+const { Users } = require('../models/index');
 
-const verificarSessao = (req, res, next) => {
-  const token = req.cookies.token; // Nome do cookie que definimos no login
+// Esta função retorna o middleware real
+const verificarSessao = (opcoes = {}) => {
+  const requerAdmin = opcoes.admin || false;
 
-  if (!token) {
-    // Se não tem token, redireciona para a página de login
-    return res.redirect('/login');
-  }
+  return async (req, res, next) => {
+    const token = req.cookies.token;
 
-  try {
-    // Valida se o token é verdadeiro e não expirou
-    const dados = jwt.verify(token, process.env.JWTENCRIPT);
+    if (!token) {
+      // Se for uma requisição API (JSON), retorna erro 401
+      if (req.headers['content-type']?.includes('application/json')) {
+        return res.status(401).json({ message: 'Não autorizado. Faça login.' });
+      }
+      // Se for navegação normal, redireciona
+      return res.redirect('/login');
+    }
 
-    // Salva os dados do usuário na requisição para usar na página
-    req.user = dados;
+    try {
+      // Valida o token
+      const dados = jwt.verify(token, process.env.JWTENCRIPT);
 
-    next(); // Autorizado! Segue para a rota
-  } catch (error) {
-    // Token inválido ou expirado
-    res.clearCookie('token');
-    return res.redirect('/login');
-  }
+      // Anexa os dados do usuário à requisição
+      req.user = dados;
+
+      // 🛡️ Verificação de Admin (se solicitado)
+      if (requerAdmin) {
+        // Opção A: Se você salvou 'isAdmin' no token JWT
+        if (!dados.isAdmin) {
+          return res
+            .status(403)
+            .json({ message: 'Acesso restrito a administradores.' });
+        }
+
+        // Opção B: Se precisar verificar no banco (mais seguro, mas mais lento)
+        // const userDb = await Users.buscarUsuarioPorEmail(dados.email);
+        // if (!userDb || !userDb.isAdmin) {
+        //    return res.status(403).json({ message: 'Acesso restrito a administradores.' });
+        // }
+      }
+
+      next(); // Tudo ok, segue para a próxima função
+    } catch (error) {
+      console.error('Erro na validação do token:', error.message);
+      res.clearCookie('token');
+
+      if (req.headers['content-type']?.includes('application/json')) {
+        return res.status(401).json({ message: 'Token inválido ou expirado.' });
+      }
+      return res.redirect('/login');
+    }
+  };
 };
 
 module.exports = verificarSessao;
