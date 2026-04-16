@@ -56,7 +56,7 @@ const loginController = async (req, res) => {
     });
 
     // 5. Resposta de sucesso (não envie a senha de volta!)
-    return res.json({
+    return res.status(201).json({
       sucesso: true,
       message: 'Login realizado com sucesso!',
       user: {
