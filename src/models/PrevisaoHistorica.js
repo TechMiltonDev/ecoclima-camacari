@@ -34,7 +34,7 @@ const sql = `
     const { horario, temperatura, clima, linkClima, infoDia } = dados;
     const umidadeInfo =
       infoDia.find((item) => item.nome.includes('Umidade')) || {};
-    const uvInfo = infoDia.find((item) => item.nome.includes('Raio UV')) || {};
+    const uvInfo = infoDia.find((item) => item.nome.toLowerCase().includes('raio')) || {};
     const ventosInfo =
       infoDia.find((item) => item.nome.includes('Ventos')) || {};
       const data = getDateBr();
