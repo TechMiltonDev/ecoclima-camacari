@@ -1,6 +1,6 @@
 // models/PrevisaoHistorica.js
 const db = require('../config/database');
-const {getDateBr} = require('../utils/helpers')
+const { getDateBr } = require('../utils/helpers');
 
 class PrevisaoHistorica {
   static tableName = 'previsoes_historicas';
@@ -8,7 +8,7 @@ class PrevisaoHistorica {
   // 🗄️ Cria a tabela própria do histórico
   static async createTable() {
     // models/PrevisaoHistorica.js - Dentro de createTable()
-const sql = `
+    const sql = `
   CREATE TABLE IF NOT EXISTS ${this.tableName} (
     id INT AUTO_INCREMENT PRIMARY KEY,
     cidade VARCHAR(255) NOT NULL,
@@ -34,11 +34,11 @@ const sql = `
     const { horario, temperatura, clima, linkClima, infoDia } = dados;
     const umidadeInfo =
       infoDia.find((item) => item.nome.includes('Umidade')) || {};
-    const uvInfo = infoDia.find((item) => item.nome.toLowerCase().includes('raio')) || {};
+    const uvInfo = infoDia.find((item) => item.nome.includes('RaioUV')) || {};
     const ventosInfo =
       infoDia.find((item) => item.nome.includes('Ventos')) || {};
-      const data = getDateBr();
-      const createdAtBrasilia = data.toISOString().slice(0, 19).replace('T', ' ');
+    const data = getDateBr();
+    const createdAtBrasilia = data.toISOString().slice(0, 19).replace('T', ' ');
 
     const sql = `
     INSERT INTO ${this.tableName} (
@@ -47,17 +47,17 @@ const sql = `
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
-  const [result] = await db.query(sql, [
-    cidade,
-    horario,
-    temperatura,
-    clima,
-    linkClima,
-    umidadeInfo.valor || null,
-    uvInfo.valor || null,
-    ventosInfo.valor || null,
-    createdAtBrasilia // Enviando a data correta aqui
-  ]);
+    const [result] = await db.query(sql, [
+      cidade,
+      horario,
+      temperatura,
+      clima,
+      linkClima,
+      umidadeInfo.valor || null,
+      uvInfo.valor || null,
+      ventosInfo.valor || null,
+      createdAtBrasilia, // Enviando a data correta aqui
+    ]);
 
     console.log(
       `📦 Histórico salvo: ${cidade} às ${horario} (ID: ${result.insertId})`,
