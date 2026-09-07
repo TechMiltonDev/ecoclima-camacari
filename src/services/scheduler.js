@@ -3,14 +3,14 @@ const CIDADES = [
   { nome: 'Camacari-BA', id: 892 },
   { nome: 'Vitoria Da Conquista-BA', id: 59 },
 ];
-const coletarClima = require('./coletarClima');
+const { coletarClimaAtual } = require('./coletarClima');
 // Verifique se este caminho está correto. Se helpers.js estiver em utils/, e scheduler em services/, ../utils/helpers está certo.
 const { getAttrSafe, getTextSafe, getDateBr } = require('../utils/helpers');
 
 async function executarColeta() {
   for (const cidade of CIDADES) {
     try {
-      await coletarClima(true, cidade);
+      await coletarClimaAtual(true, cidade);
     } catch (error) {
       console.error(`Erro ao coletar dados de ${cidade}:`, error.message);
     }
