@@ -50,11 +50,10 @@ app.get('/api/coleta-cron', async (req, res) => {
 
 app.use(express.json());
 // app.use(cookieParser());
-app.use(express.json());
 app.engine('html', ejs.renderFile);
 app.set('view engine', 'html');
 app.set('views', __dirname + '/src/views');
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/', async (req, res) => {
   const { dadosAtual, cidade } = await coletarClimaAtual(
