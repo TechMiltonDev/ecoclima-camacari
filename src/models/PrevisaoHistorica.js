@@ -21,7 +21,7 @@ class PrevisaoHistorica {
     created_at DATETIME NOT NULL,
     INDEX idx_cidade_created (cidade, created_at),
     INDEX idx_cidade_horario (cidade, horario_registro)
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 AUTO_INCREMENT_STEP=1;
 `;
 
     await db.query(sql);
