@@ -105,7 +105,7 @@ async function coletarClimaAtual(
         };
 
         // Adicionar registro à Tabela 3 (Histórico) - COPIA os dados da Tabela 1, incluindo infoDia
-        await PrevisaoHistorica.registrar(cidade, dadosDiaria);
+        await PrevisaoHistorica.registrar(cidade.nome, dadosDiaria);
       }
     }
 
