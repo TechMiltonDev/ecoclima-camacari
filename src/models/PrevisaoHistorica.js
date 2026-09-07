@@ -18,6 +18,7 @@ class PrevisaoHistorica {
     link_clima VARCHAR(500),
     umidade_valor VARCHAR(10),
     raio_uv_valor VARCHAR(10),
+    sensacao_termica_valor VARCHAR(10),
     ventos_valor VARCHAR(10),
     created_at DATETIME NOT NULL,
     INDEX idx_cidade_created (cidade, created_at),
@@ -31,20 +32,23 @@ class PrevisaoHistorica {
 
   // 📥 Método independente para salvar histórico (recebe dados brutos)
   static async registrar(cidade, dados) {
-    const { horario, temperatura, clima, linkClima, infoDia } = dados;
-    const umidadeInfo =
-      infoDia.find((item) => item.nome.includes('Umidade')) || {};
-    const uvInfo = infoDia.find((item) => item.nome.includes('RaioUV')) || {};
-    const ventosInfo =
-      infoDia.find((item) => item.nome.includes('Ventos')) || {};
+    const {
+      horario,
+      temperatura,
+      vento,
+      umidade,
+      sensacaoTermica,
+      clima,
+      linkClima,
+    } = dados;
     const data = getDateBr();
     const createdAtBrasilia = data.toISOString().slice(0, 19).replace('T', ' ');
 
     const sql = `
     INSERT INTO ${this.tableName} (
       cidade, horario_registro, temperatura, clima, link_clima,
-      umidade_valor, raio_uv_valor, ventos_valor, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      umidade_valor, raio_uv_valor, sensacao_termica_valor, ventos_valor, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
     const [result] = await db.query(sql, [
@@ -53,9 +57,10 @@ class PrevisaoHistorica {
       temperatura,
       clima,
       linkClima,
-      umidadeInfo.valor || null,
-      uvInfo.valor || null,
-      ventosInfo.valor || null,
+      umidade || null,
+      null,
+      sensacaoTermica || null,
+      vento || null,
       createdAtBrasilia, // Enviando a data correta aqui
     ]);
 
