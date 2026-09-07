@@ -8,12 +8,12 @@ dotenv.config();
 
 // Importar a função de inicialização dos modelos
 const { initializeModels, PrevisaoHistorica } = require('./src/models'); // Caminho relativo para models/index.js
-const loginController = require('./src/controller/login');
-const cadastroController = require('./src/controller/cadastro');
-const upload = require('./src/config/upload');
-const uploadController = require('./src/controller/uploadController');
-const verificarSessao = require('./src/middlewares/auth');
-const verifyOrigin = require('./src/middlewares/verifyOrigin'); // <--- IMPORTE AQUI
+// const loginController = require('./src/controller/login');
+// const cadastroController = require('./src/controller/cadastro');
+// const upload = require('./src/config/upload');
+// const uploadController = require('./src/controller/uploadController');
+// const verificarSessao = require('./src/middlewares/auth');
+// const verifyOrigin = require('./src/middlewares/verifyOrigin');
 
 const { coletarClimaAtual } = require('./src/services/coletarClima'); // ou o caminho correto para o seu service
 const app = express();
