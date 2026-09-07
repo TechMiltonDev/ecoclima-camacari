@@ -1,7 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const cookieParser = require('cookie-parser');
-const jwt = require('jsonwebtoken');
+// const cookieParser = require('cookie-parser');
+// const jwt = require('jsonwebtoken');
 const ejs = require('ejs');
 
 dotenv.config();
@@ -49,7 +49,7 @@ app.get('/api/coleta-cron', async (req, res) => {
 });
 
 app.use(express.json());
-app.use(cookieParser());
+// app.use(cookieParser());
 app.use(express.json());
 app.engine('html', ejs.renderFile);
 app.set('view engine', 'html');
