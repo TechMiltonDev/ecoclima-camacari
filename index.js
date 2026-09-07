@@ -66,9 +66,7 @@ app.get('/', async (req, res) => {
 
   res.render('index', {
     dadosAtual,
-    infoDia,
     cidade,
-    dadosSemanais, // lista de dicionarios com: tempMax, tempMin, dia, nomeDia. No dia previsto pode ta escrito Amanhã
   });
 });
 
