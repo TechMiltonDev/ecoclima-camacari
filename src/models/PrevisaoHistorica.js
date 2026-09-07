@@ -1,13 +1,11 @@
-// models/PrevisaoHistorica.js
 const db = require('../config/database');
 const { getDateBr } = require('../utils/helpers');
 
 class PrevisaoHistorica {
   static tableName = 'previsoes_historicas';
 
-  // 🗄️ Cria a tabela própria do histórico
+  // 🗄️ Cria/Verifica a tabela própria do histórico
   static async createTable() {
-    // models/PrevisaoHistorica.js - Dentro de createTable()
     const sql = `
   CREATE TABLE IF NOT EXISTS ${this.tableName} (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -30,7 +28,7 @@ class PrevisaoHistorica {
     console.log(`✅ Tabela '${this.tableName}' verificada/criada.`);
   }
 
-  // 📥 Método independente para salvar histórico (recebe dados brutos)
+  // 📥 Método para salvar histórico e retornar o ID correto
   static async registrar(cidade, dados) {
     const {
       horario,
@@ -51,7 +49,7 @@ class PrevisaoHistorica {
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
-    const [result] = await db.query(sql, [
+    const res = await db.query(sql, [
       cidade,
       horario,
       temperatura,
@@ -61,45 +59,55 @@ class PrevisaoHistorica {
       null,
       sensacaoTermica || null,
       vento || null,
-      createdAtBrasilia, // Enviando a data correta aqui
+      createdAtBrasilia,
     ]);
 
+    // Trata se o retorno do driver (mysql2/mariadb) for array ou objeto direto
+    const result = Array.isArray(res) ? res[0] : res;
+    const insertedId = result?.insertId || result?.insertid;
+
     console.log(
-      `📦 Histórico salvo: ${cidade} às ${horario} (ID: ${result.insertId})`,
+      `📦 Histórico salvo: ${cidade} às ${horario} (ID: ${insertedId})`,
     );
-    return { id: result.insertId, cidade, horario };
+    return { id: insertedId, cidade, horario };
   }
 
-  // 🔍 Busca histórico de uma cidade (todos os registros)
+  // 🔍 Busca os N registros mais recentes, reordenando em ordem crescente (mais novo ao final)
   static async buscarPorCidade(cidade, limite = 100) {
     const sql = `
-      SELECT * FROM ${this.tableName} 
-      WHERE cidade = ? 
-      ORDER BY created_at DESC 
-      LIMIT ?
+      SELECT * FROM (
+        SELECT * FROM ${this.tableName} 
+        WHERE cidade = ? 
+        ORDER BY id DESC 
+        LIMIT ?
+      ) AS sub
+      ORDER BY id ASC
     `;
-    const [rows] = await db.query(sql, [cidade, limite]);
+    const res = await db.query(sql, [cidade, Number(limite)]);
+    const rows = Array.isArray(res) ? (Array.isArray(res[0]) ? res[0] : res) : res;
     return rows;
   }
 
-  // 🔍 Busca por período específico
+  // 🔍 Busca por período específico (Crescente por ID)
   static async buscarPorPeriodo(cidade, dataInicio, dataFim) {
     const sql = `
       SELECT * FROM ${this.tableName} 
       WHERE cidade = ? 
       AND created_at BETWEEN ? AND ?
-      ORDER BY created_at ASC
+      ORDER BY id ASC
     `;
-    const [rows] = await db.query(sql, [cidade, dataInicio, dataFim]);
+    const res = await db.query(sql, [cidade, dataInicio, dataFim]);
+    const rows = Array.isArray(res) ? (Array.isArray(res[0]) ? res[0] : res) : res;
     return rows;
   }
 
   // 📊 Conta quantos registros existem para uma cidade
   static async contarPorCidade(cidade) {
-    const [rows] = await db.query(
+    const res = await db.query(
       `SELECT COUNT(*) as total FROM ${this.tableName} WHERE cidade = ?`,
       [cidade],
     );
+    const rows = Array.isArray(res) ? (Array.isArray(res[0]) ? res[0] : res) : res;
     return rows[0].total;
   }
 }
