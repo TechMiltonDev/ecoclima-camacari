@@ -113,15 +113,13 @@ async function coletarClimaAtual(
 
     return {
       dadosAtual: climaAtual[0],
-      cidade,
+      cidade: cidade.nome,
     };
   } catch (error) {
     console.error('Erro ao coletar dados do clima:', error.message);
     return {
       dadosAtual: null,
-      infoDia: null,
       cidade: null,
-      dadosSemanais: null,
     };
   }
 }
