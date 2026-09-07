@@ -87,40 +87,40 @@ app.post('/climas', async (req, res) => {
   });
 });
 
-app.get('/cadastro', (req, res) => {
-  res.render('cadastro');
-});
+// app.get('/cadastro', (req, res) => {
+//   res.render('cadastro');
+// });
 
-app.post('/cadastro', verifyOrigin, cadastroController);
+// app.post('/cadastro', verifyOrigin, cadastroController);
 
-app.get('/login', (req, res) => {
-  res.render('login');
-});
+// app.get('/login', (req, res) => {
+//   res.render('login');
+// });
 
-app.post('/login', verifyOrigin, loginController);
+// app.post('/login', verifyOrigin, loginController);
 
-app.get('/uploads', verificarSessao({ admin: true }), (req, res) => {
-  res.render('uploads');
-});
+// app.get('/uploads', verificarSessao({ admin: true }), (req, res) => {
+//   res.render('uploads');
+// });
 
-const uploadFields = upload.fields([
-  { name: 'nomeImagem', maxCount: 1 },
-  { name: 'arquivo', maxCount: 1 },
-]);
+// const uploadFields = upload.fields([
+//   { name: 'nomeImagem', maxCount: 1 },
+//   { name: 'arquivo', maxCount: 1 },
+// ]);
 
-// Rota Protegida
-app.post(
-  '/upload',
-  verificarSessao({ admin: true }),
-  verifyOrigin,
-  uploadFields,
-  uploadController,
-);
+// // Rota Protegida
+// app.post(
+//   '/upload',
+//   verificarSessao({ admin: true }),
+//   verifyOrigin,
+//   uploadFields,
+//   uploadController,
+// );
 
-app.post('/logout', (req, res) => {
-  res.clearCookie('token');
-  res.json({ message: 'Logout realizado!' });
-});
+// app.post('/logout', (req, res) => {
+//   res.clearCookie('token');
+//   res.json({ message: 'Logout realizado!' });
+// });
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando na Porta: ${PORT}`);
